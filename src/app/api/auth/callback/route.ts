@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: process.env.FACEBOOK_CLIENT_ID!,
-          client_secret: process.env.FACEBOOK_CLIENT_SECRET!,
-          redirect_uri: 'https://avail-studio-one.vercel.app/api/auth/callback',
+          client_id: process.env.NEXT_PUBLIC_META_APP_ID!,
+          client_secret: process.env.META_APP_SECRET!,
+          redirect_uri: process.env.NEXT_PUBLIC_META_REDIRECT_URI!,
           code,
         }).toString(),
       }
