@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
-    const state = searchParams.get('state');
 
     if (!code) {
       return NextResponse.redirect(new URL('/?error=no_code', request.url));
@@ -18,14 +17,14 @@ export async function GET(request: NextRequest) {
 
     // Exchange code for access token
     const tokenResponse = await fetch(
-      'https://graph.instagram.com/v18.0/oauth/access_token',
+      'https://graph.facebook.com/v18.0/oauth/access_token',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: process.env.NEXT_PUBLIC_META_APP_ID!,
-          client_secret: process.env.META_APP_SECRET!,
-          redirect_uri: process.env.NEXT_PUBLIC_META_REDIRECT_URI!,
+          client_id: process.env.FACEBOOK_CLIENT_ID!,
+          client_secret: process.env.FACEBOOK_CLIENT_SECRET!,
+          redirect_uri: 'https://avail-studio-one.vercel.app/api/auth/callback',
           code,
         }).toString(),
       }
@@ -46,9 +45,8 @@ export async function GET(request: NextRequest) {
 
     // Get user info from Meta
     const userResponse = await fetch(
-      `https://graph.instagram.com/me?fields=id,name,email&access_token=${accessToken}`
+      `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
     );
-
     const userData = await userResponse.json();
 
     // Store in Supabase
@@ -59,7 +57,6 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (existingUser) {
-      // Update existing user
       await supabase
         .from('users')
         .update({
@@ -69,7 +66,6 @@ export async function GET(request: NextRequest) {
         })
         .eq('id', existingUser.id);
     } else {
-      // Create new user
       await supabase
         .from('users')
         .insert({
@@ -86,7 +82,7 @@ export async function GET(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
     });
 
     return response;
