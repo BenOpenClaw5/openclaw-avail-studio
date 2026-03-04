@@ -4,6 +4,10 @@ import { cookies } from 'next/headers'
 const verifyCache = new Map<string, { data: object; expires: number }>()
 
 export async function GET() {
+  if (process.env.USE_MOCK_DATA === 'true') {
+    const mockUser = { id: 'mock_user_123', name: 'Demo User', email: 'demo@example.com' }
+    return NextResponse.json({ authenticated: true, user: mockUser })
+  }
   const cookieStore = await cookies()
   const token = cookieStore.get('meta_access_token')?.value
   if (!token) {
