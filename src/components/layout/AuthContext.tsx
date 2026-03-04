@@ -26,6 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    const isMockMode = !process.env.NEXT_PUBLIC_META_APP_ID || process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
+    if (isMockMode) {
+      setUser({ id: 'mock_user_123', name: 'Demo User', email: 'demo@example.com' })
+      setIsLoading(false)
+      return
+    }
     const checkAuth = async () => {
       try {
         const res = await fetch('/api/auth/check')
