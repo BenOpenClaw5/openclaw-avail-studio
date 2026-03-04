@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
-export async function POST(request: NextRequest) {
-  const response = NextResponse.json({ success: true });
-  response.cookies.delete('meta_access_token');
-  return response;
+export async function POST() {
+  const cookieStore = await cookies()
+  cookieStore.delete('meta_access_token')
+  return NextResponse.json({ success: true })
 }

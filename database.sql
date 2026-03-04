@@ -1,49 +1,32 @@
 -- Users table
-CREATE TABLE IF NOT EXISTS users (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  meta_user_id VARCHAR(255) UNIQUE NOT NULL,
-  meta_user_name VARCHAR(255),
-  access_token TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+create table if not exists users (
+  id uuid default gen_random_uuid() primary key,
+  meta_user_id text unique not null,
+  meta_user_name text,
+  meta_email text,
+  access_token text not null,
+  selected_ad_account_id text,
+  selected_ad_account_name text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
--- Ad Accounts table
-CREATE TABLE IF NOT EXISTS ad_accounts (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  account_id VARCHAR(255) NOT NULL,
-  account_name VARCHAR(255),
-  currency VARCHAR(3),
-  timezone VARCHAR(255),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- User settings
+create table if not exists user_settings (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references users(id) on delete cascade,
+  default_date_range text default '30d',
+  currency text default 'USD',
+  timezone text default 'America/New_York',
+  notifications_enabled boolean default true,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
--- Sessions table (for storing session data temporarily)
-CREATE TABLE IF NOT EXISTS sessions (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  session_token VARCHAR(255) UNIQUE NOT NULL,
-  expires_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Indexes
+create index if not exists users_meta_user_id_idx on users(meta_user_id);
+create index if not exists user_settings_user_id_idx on user_settings(user_id);
 
--- Insights cache (for caching Meta API responses to reduce calls)
-CREATE TABLE IF NOT EXISTS insights_cache (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  account_id VARCHAR(255) NOT NULL,
-  metric_type VARCHAR(100) NOT NULL,
-  date_start DATE,
-  date_end DATE,
-  data JSONB NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP NOT NULL
-);
-
--- Create indexes for faster queries
-CREATE INDEX idx_users_meta_user_id ON users(meta_user_id);
-CREATE INDEX idx_ad_accounts_user_id ON ad_accounts(user_id);
-CREATE INDEX idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX idx_sessions_token ON sessions(session_token);
-CREATE INDEX idx_insights_account_date ON insights_cache(account_id, date_start, date_end);
+-- RLS
+alter table users disable row level security;
+alter table user_settings disable row level security;
